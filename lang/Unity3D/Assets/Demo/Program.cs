@@ -14,9 +14,9 @@
 
 namespace HelloAvro
 {
-    class Program
+    public class Program : UnityEngine.MonoBehaviour
     {
-        static void Main(string[] args)
+        public void Start()
         {
             var serDemo = new SerializationDemo();
             serDemo.Run();
