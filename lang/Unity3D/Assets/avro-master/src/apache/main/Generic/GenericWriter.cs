@@ -278,7 +278,7 @@ namespace Avro.Generic
         /// <returns>The array element at the index</returns>
         protected virtual object GetArrayElement(object value, long index)
         {
-            return (value as Array).GetValue(index);
+            return (value as Array).GetValue((int)index);
         }
 
         /// <summary>
