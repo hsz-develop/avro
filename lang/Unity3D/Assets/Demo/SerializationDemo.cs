@@ -19,10 +19,13 @@ namespace HelloAvro
             // Serialization
             var bytes = SerializerAvro.Serialize(employee);
             UnityEngine.Debug.Log("Serialized object to " + bytes.Length + " bytes");
+            Highskillz.Core.AR.DebugConsole.LogWithTime("Serialized object to " + bytes.Length + " bytes");
             UnityEngine.Debug.Log("Bytes are: " + BitConverter.ToString(bytes));
+            Highskillz.Core.AR.DebugConsole.LogWithTime("Serialized object to " + bytes.Length + " bytes");
 
             // Deserialization
             UnityEngine.Debug.Log("Deserializing bytes back into object ... " + Environment.NewLine);
+            Highskillz.Core.AR.DebugConsole.LogWithTime("Deserializing bytes back into object ... " + Environment.NewLine);
             var regenerated = SerializerAvro.Deserialize<EmployeeDTO>(bytes);
 
             // Verification : We compare original object with the object regenerated
@@ -34,10 +37,15 @@ namespace HelloAvro
             var regenJson = JsonConvert.SerializeObject(regenerated);
 
             if (origJson.Equals(regenJson))
+            {
                 UnityEngine.Debug.Log("Success. Object through the serialize=>deserialize round trip are identical.");
+                Highskillz.Core.AR.DebugConsole.LogWithTime("Success. Object through the serialize=>deserialize round trip are identical.");
+            }
             else
-
+            {
                 UnityEngine.Debug.Log("FAILED! We lost data during the serialize=>deserialize round trip");
+                Highskillz.Core.AR.DebugConsole.LogWithTime("FAILED! We lost data during the serialize=>deserialize round trip");
+            }
 
             //UnityEngine.Debug.Log(Environment.NewLine + "Press any key to exit ...");
             //Console.ReadLine();
