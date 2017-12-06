@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,6 +20,10 @@ using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
 using System.Reflection.Emit;
+//using Microsoft.Extensions.DependencyModel;
+using System.Linq;
+using System.Linq.Expressions;
+//using System.Runtime.Loader;
 
 namespace Avro.Specific
 {
@@ -45,19 +49,21 @@ namespace Avro.Specific
         private Type GenericNullableType = typeof(Nullable<>);
         
         private readonly Assembly execAssembly;
-        private readonly Assembly entryAssembly;
-        private readonly bool diffAssembly;
+        // Highskillz: commented this for unity uwp compatibility: will not support NUnit
+        //private readonly Assembly entryAssembly;
+        //private readonly bool diffAssembly;
 
-        public delegate object CtorDelegate();
+        public delegate object CtorDelegate(params object[] args);
         private Type ctorType = typeof(CtorDelegate);
         Dictionary<NameCtorKey, CtorDelegate> ctors;
 
         private ObjectCreator()
         {
-            execAssembly = System.Reflection.Assembly.GetExecutingAssembly();
-            entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
-            if (entryAssembly != null && execAssembly != entryAssembly) // entryAssembly returns null when running from NUnit
-                diffAssembly = true;
+            execAssembly = this.GetType().GetTypeInfo().Assembly;
+            // Highskillz: commented this for unity uwp compatibility: will not support NUnit
+            //entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
+            //if (entryAssembly != null && execAssembly != entryAssembly) // entryAssembly returns null when running from NUnit
+            //    diffAssembly = true;
 
             GenericMapType = typeof(Dictionary<,>);
             GenericListType = typeof(List<>);
@@ -121,39 +127,41 @@ namespace Avro.Specific
             name = name.Replace("<", "[");
             name = name.Replace(">", "]");
 
-            if (diffAssembly)
-            {
-                // entry assembly different from current assembly, try entry assembly first
-                type = entryAssembly.GetType(name);
-                if (type == null)   // now try current assembly and mscorlib
-                    type = Type.GetType(name);
-            }
-            else
-                type = Type.GetType(name);
+            // Highskillz: commented this for unity uwp compatibility: will not support NUnit
+            //if (diffAssembly)
+            //{
+            //    // entry assembly different from current assembly, try entry assembly first
+            //    type = entryAssembly.GetType(name);
+            //    if (type == null)   // now try current assembly and mscorlib
+            //        type = Type.GetType(name);
+            //}
+            //else
+            type = Type.GetType(name);
 
-            Type[] types;
+            // Highskillz: commented this for unity uwp compatibility: will search only main assembly for types, don't see anything wrong with that
+            //Type[] types;
 
-            if (type == null) // type is still not found, need to loop through all loaded assemblies
-            {
-                Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-                foreach (Assembly assembly in assemblies)
-                {
-                    // Fix for Mono 3.0.10
-                    if (assembly.FullName.StartsWith("MonoDevelop.NUnit"))
-                        continue;
+            //if (type == null) // type is still not found, need to loop through all loaded assemblies
+            //{
+            //    Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            //    foreach (Assembly assembly in assemblies)
+            //    {
+            //        // Fix for Mono 3.0.10
+            //        if (assembly.FullName.StartsWith("MonoDevelop.NUnit"))
+            //            continue;
 
-                    types = assembly.GetTypes();
+            //        types = assembly.GetTypes();
 
-                    // Change the search to look for Types by both NAME and FULLNAME
-                    foreach (Type t in types)
-                    {
-                        if (name == t.Name || name == t.FullName) type = t;
-                    }
-                    
-                    if (type != null)
-                        break;
-                }
-            }
+            //        // Change the search to look for Types by both NAME and FULLNAME
+            //        foreach (Type t in types)
+            //        {
+            //            if (name == t.Name || name == t.FullName) type = t;
+            //        }
+
+            //        if (type != null)
+            //            break;
+            //    }
+            //}
 
             if (null == type && throwError)
             {
@@ -163,6 +171,46 @@ namespace Avro.Specific
             return type;
         }
 
+        // Highskillz: commented this for unity uwp compatibility: will search only main assembly for types, don't see anything wrong with that
+        /// http://www.michael-whelan.net/replacing-appdomain-in-dotnet-core/
+        /// polyfill
+        //public class AppDomain
+        //{
+        //    public static AppDomain CurrentDomain { get; private set; }
+
+        //    static AppDomain()
+        //    {
+        //        CurrentDomain = new AppDomain();
+        //    }
+
+        //    public Assembly[] GetAssemblies()
+        //    {
+        //        var assemblies = new List<Assembly>();
+        //        var dependencies = DependencyContext.Default.RuntimeLibraries;
+        //        foreach (var library in dependencies)
+        //        {
+        //            if (IsCandidateCompilationLibrary(library))
+        //            {
+        //                try
+        //                {
+        //                    var assembly = Assembly.Load(new AssemblyName(library.Name));
+        //                    assemblies.Add(assembly);
+        //                } catch (Exception)
+        //                {
+        //                    continue;
+        //                }
+        //            }
+        //        }
+        //        return assemblies.ToArray();
+        //    }
+
+        //    private static bool IsCandidateCompilationLibrary(RuntimeLibrary compilationLibrary)
+        //    {
+        //        return true;
+        //        //return compilationLibrary.Name == ("Specify")
+        //        //    || compilationLibrary.Dependencies.Any(d => d.Name.StartsWith("Specify"));
+        //    }
+        //}
 
         /// <summary>
         /// Gets the type for the specified schema
@@ -209,7 +257,7 @@ namespace Avro.Specific
 
                         if (null != itemType ) 
                         {
-                            if (itemType.IsValueType && !itemType.IsEnum)
+                            if (itemType.GetTypeInfo().IsValueType && !itemType.GetTypeInfo().IsEnum)
                             {
                                 try
                                 {
@@ -281,17 +329,70 @@ namespace Avro.Specific
         /// <returns>Default constructor for the type</returns>
         public CtorDelegate GetConstructor(string name, Schema.Type schemaType, Type type)
         {
-            ConstructorInfo ctorInfo = type.GetConstructor(Type.EmptyTypes);
-            if (ctorInfo == null)
-                throw new AvroException("Class " + name + " has no default constructor");
+            //ConstructorInfo ctorInfo = type.GetConstructor(Type.EmptyTypes);
+            //if (ctorInfo == null)
+            //    throw new AvroException("Class " + name + " has no default constructor");
 
-            DynamicMethod dynMethod = new DynamicMethod("DM$OBJ_FACTORY_" + name, typeof(object), null, type, true);
-            ILGenerator ilGen = dynMethod.GetILGenerator();
-            ilGen.Emit(OpCodes.Nop);
-            ilGen.Emit(OpCodes.Newobj, ctorInfo);
-            ilGen.Emit(OpCodes.Ret);
+            //DynamicMethod dynMethod = new DynamicMethod("DM$OBJ_FACTORY_" + name, typeof(object), null, type, true);
+            //ILGenerator ilGen = dynMethod.GetILGenerator();
+            //ilGen.Emit(OpCodes.Nop);
+            //ilGen.Emit(OpCodes.Newobj, ctorInfo);
+            //ilGen.Emit(OpCodes.Ret);
 
-            return (CtorDelegate)dynMethod.CreateDelegate(ctorType);
+            //return (CtorDelegate)dynMethod.CreateDelegate(ctorType);
+
+            // https://ayende.com/blog/3167/creating-objects-perf-implications
+            // http://bit.ly/2cbySMk
+
+            //return () => Activator.CreateInstance(type);
+
+            return GetCreator(type);
+        }
+
+        public static CtorDelegate GetCreator(Type typ)
+        {
+            var cInfo = typ.GetConstructor(new Type[] { });
+
+            Type type = cInfo.DeclaringType;
+
+            ParameterInfo[] paramsInfo = cInfo.GetParameters();
+
+            // parameter of type object[] named args
+
+            ParameterExpression paramExpr = Expression.Parameter(typeof(object[]), "args");
+
+            var argsExpr = new Expression[paramsInfo.Length];
+
+            // get each arg from object[] args
+
+            // and create SomeType arg expression
+
+            // eg. (int parameterA)
+
+            for (int i = 0; i < paramsInfo.Length; ++i)
+            {
+                ConstantExpression index = Expression.Constant(i);
+
+                Type argType = paramsInfo[i].ParameterType;
+
+                BinaryExpression accessprExpr = Expression.ArrayIndex(paramExpr, index);
+
+                UnaryExpression castExpr = Expression.Convert(accessprExpr, argType);
+
+                argsExpr[i] = castExpr;
+            }
+
+            // new Constructor(param1, param2, ...)
+
+            NewExpression newExpr = Expression.New(cInfo, argsExpr);
+
+            // create lambda in order to compile expression
+
+            LambdaExpression lambda = Expression.Lambda(typeof(CtorDelegate), newExpr, paramExpr);
+
+            var compiledLambda = (CtorDelegate)lambda.Compile();
+
+            return compiledLambda;
         }
 
         /// <summary>
