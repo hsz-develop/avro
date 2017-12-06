@@ -61,15 +61,29 @@ namespace Avro
             List<string> symbols = new List<string>();
             IDictionary<string, int> symbolMap = new Dictionary<string, int>();
             int i = 0;
-            foreach (JValue jsymbol in jsymbols)
+
+            // HSZ TODO: #IFDEF THIS
+            for (int a = 0; a < jsymbols.Count; a++)
             {
-                string s = (string)jsymbol.Value;
+                string s = (string)((JValue)jsymbols[a]).Value;
                 if (symbolMap.ContainsKey(s))
                     throw new SchemaParseException("Duplicate symbol: " + s);
 
                 symbolMap[s] = i++;
                 symbols.Add(s);
             }
+
+            // HSZ TODO: #IFDEF THIS
+            //foreach (JValue jsymbol in jsymbols)
+            //{
+            //    string s = (string)jsymbol.Value;
+            //    if (symbolMap.ContainsKey(s))
+            //        throw new SchemaParseException("Duplicate symbol: " + s);
+
+            //    symbolMap[s] = i++;
+            //    symbols.Add(s);
+            //}
+
             return new EnumSchema(name, aliases, symbols, symbolMap, props, names);
         }
 

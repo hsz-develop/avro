@@ -50,11 +50,12 @@ namespace Avro
             List<Schema> schemas = new List<Schema>();
             IDictionary<string, string> uniqueSchemas = new Dictionary<string, string>();
 
-            foreach (JToken jvalue in jarr)
+            // HSZ TODO: #IFDEF THIS
+            for(int i = 0; i < jarr.Count; i++)
             {
-                Schema unionType = Schema.ParseJson(jvalue, names, encspace);
+                Schema unionType = Schema.ParseJson(jarr[i], names, encspace);
                 if (null == unionType)
-                    throw new SchemaParseException("Invalid JSON in union" + jvalue.ToString());
+                    throw new SchemaParseException("Invalid JSON in union" + jarr[i].ToString());
 
                 string name = unionType.Name;
                 if (uniqueSchemas.ContainsKey(name))
@@ -63,6 +64,21 @@ namespace Avro
                 uniqueSchemas.Add(name, name);
                 schemas.Add(unionType);
             }
+
+            // HSZ TODO: #IFDEF THIS
+            //foreach (JToken jvalue in jarr)
+            //{
+            //    Schema unionType = Schema.ParseJson(jvalue, names, encspace);
+            //    if (null == unionType)
+            //        throw new SchemaParseException("Invalid JSON in union" + jvalue.ToString());
+
+            //    string name = unionType.Name;
+            //    if (uniqueSchemas.ContainsKey(name))
+            //        throw new SchemaParseException("Duplicate type in union: " + name);
+
+            //    uniqueSchemas.Add(name, name);
+            //    schemas.Add(unionType);
+            //}
 
             return new UnionSchema(schemas, props);
         }
