@@ -78,10 +78,13 @@ namespace Avro
             var result = new RecordSchema(type, name, aliases, props, fields, request, fieldMap, fieldAliasMap, names);
 
             int fieldPos = 0;
-            foreach (JObject jfield in jfields)
+
+            // HSZ TODO: #IFDEF THIS
+            List<JObject> jObjects = new List<JObject>(jfields.Values<JObject>()); // TODO: I AM NOT SURE THIS IS EQUIVALENT
+            for (int i = 0; i < jObjects.Count; i++)
             {
-                string fieldName = JsonHelper.GetRequiredString(jfield, "name");
-                Field field = createField(jfield, fieldPos++, names, name.Namespace);  // add record namespace for field look up
+                string fieldName = JsonHelper.GetRequiredString(jObjects[i], "name");
+                Field field = createField(jObjects[i], fieldPos++, names, name.Namespace);  // add record namespace for field look up
                 fields.Add(field);
                 addToFieldMap(fieldMap, fieldName, field);
                 addToFieldMap(fieldAliasMap, fieldName, field);
@@ -90,6 +93,19 @@ namespace Avro
                     foreach (string alias in field.aliases)
                         addToFieldMap(fieldAliasMap, alias, field);
             }
+            // HSZ TODO: #IFDEF THIS
+            //foreach (JObject jfield in jfields)
+            //{
+            //    string fieldName = JsonHelper.GetRequiredString(jfield, "name");
+            //    Field field = createField(jfield, fieldPos++, names, name.Namespace);  // add record namespace for field look up
+            //    fields.Add(field);
+            //    addToFieldMap(fieldMap, fieldName, field);
+            //    addToFieldMap(fieldAliasMap, fieldName, field);
+
+            //    if (null != field.aliases)    // add aliases to field lookup map so reader function will find it when writer field name appears only as an alias on the reader field
+            //        foreach (string alias in field.aliases)
+            //            addToFieldMap(fieldAliasMap, alias, field);
+            //}
             return result;
         }
 

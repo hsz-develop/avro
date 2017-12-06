@@ -170,13 +170,25 @@ namespace Avro
                 throw new SchemaParseException("Aliases must be of format JSON array of strings");
 
             var aliases = new List<string>();
-            foreach (JToken jalias in jaliases)
+
+            // HSZ TODO: #IFDEF THIS
+            List<JToken> jtokens = new List<JToken>(jaliases.Values<JToken>()); // TODO: I AM NOT SURE THIS IS EQUIVALENT
+            for(int i = 0; i < jtokens.Count; i++)
             {
-                if (jalias.Type != JTokenType.String)
+                if (jaliases[i].Type != JTokenType.String)
                     throw new SchemaParseException("Aliases must be of format JSON array of strings");
 
-                aliases.Add((string)jalias);
+                aliases.Add((string)jaliases[i]);
             }
+
+            // HSZ TODO: #IFDEF THIS
+            //foreach (JToken jalias in jaliases)
+            //{
+            //    if (jalias.Type != JTokenType.String)
+            //        throw new SchemaParseException("Aliases must be of format JSON array of strings");
+
+            //    aliases.Add((string)jalias);
+            //}
             return aliases;
         }
 

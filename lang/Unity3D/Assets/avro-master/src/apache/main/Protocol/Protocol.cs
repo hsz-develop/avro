@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -130,22 +130,39 @@ namespace Avro
             var types = new List<Schema>();
             if (jtypes is JArray)
             {
-                foreach (JToken jtype in jtypes)
+                // HSZ TODO: #IFDEF THIS
+                List<JToken> jtokens = new List<JToken>(jtypes.Values<JToken>()); // TODO: I AM NOT SURE THIS IS EQUIVALENT
+                for (int i = 0; i < jtokens.Count; i++)
                 {
-                    var schema = Schema.ParseJson(jtype, names, space);
+                    var schema = Schema.ParseJson(jtypes[i], names, space);
                     types.Add(schema);
                 }
+
+                // HSZ TODO: #IFDEF THIS
+                //foreach (JToken jtype in jtypes)
+                //{
+                //    var schema = Schema.ParseJson(jtype, names, space);
+                //    types.Add(schema);
+                //}
             }
 
             var messages = new Dictionary<string,Message>();
             JToken jmessages = jtok["messages"];
             if (null != jmessages)
             {
-                foreach (JProperty jmessage in jmessages)
+                // HSZ TODO: #IFDEF THIS
+                List<JProperty> jproperties = new List<JProperty>(jmessages.Values<JProperty>()); // TODO: I AM NOT SURE THIS IS EQUIVALENT
+                for (int i = 0; i < jproperties.Count; i++)
                 {
-                    var message = Message.Parse(jmessage, names, space);
+                    var message = Message.Parse(jproperties[i], names, space);
                     messages.Add(message.Name, message);
                 }
+                // HSZ TODO: #IFDEF THIS
+                //foreach (JProperty jmessage in jmessages)
+                //{
+                //    var message = Message.Parse(jmessage, names, space);
+                //    messages.Add(message.Name, message);
+                //}
             }
 
             return new Protocol(name, space, doc, types, messages);
