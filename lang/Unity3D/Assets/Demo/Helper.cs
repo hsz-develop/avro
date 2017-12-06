@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HelloAvro.DTO;
 
@@ -30,8 +30,10 @@ namespace HelloAvro
 
         public static void WriteLine(string who, string format, params Object[] arg)
         {
-            Console.Write(who + ": ");
-            Console.WriteLine(format,arg);
+            UnityEngine.Debug.Log(who + ": ");
+            UnityEngine.Debug.Log(format);
+            foreach (Object o in arg)
+                UnityEngine.Debug.Log("arg: " + arg.ToString());
         }
     }
 }

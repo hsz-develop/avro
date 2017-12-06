@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HelloAvro.DTO;
 using Newtonsoft.Json;
 
@@ -12,17 +12,17 @@ namespace HelloAvro
     {
         public void Run()
         {
-            Console.WriteLine("Running the Avro serialization demo ...");
+            UnityEngine.Debug.Log("Running the Avro serialization demo ...");
 
             var employee = Helper.CreateEmployee();
 
             // Serialization
             var bytes = SerializerAvro.Serialize(employee);
-            Console.WriteLine("Serialized object to {0} bytes", bytes.Length);
-            Console.WriteLine("Bytes are: {0}", BitConverter.ToString(bytes));
+            UnityEngine.Debug.Log("Serialized object to " + bytes.Length + " bytes");
+            UnityEngine.Debug.Log("Bytes are: " + BitConverter.ToString(bytes));
 
             // Deserialization
-            Console.WriteLine("Deserializing bytes back into object ... " + Environment.NewLine);
+            UnityEngine.Debug.Log("Deserializing bytes back into object ... " + Environment.NewLine);
             var regenerated = SerializerAvro.Deserialize<EmployeeDTO>(bytes);
 
             // Verification : We compare original object with the object regenerated
@@ -34,14 +34,14 @@ namespace HelloAvro
             var regenJson = JsonConvert.SerializeObject(regenerated);
 
             if (origJson.Equals(regenJson))
-                Console.WriteLine("Success. Object through the serialize=>deserialize round trip are identical.");
+                UnityEngine.Debug.Log("Success. Object through the serialize=>deserialize round trip are identical.");
             else
 
-                Console.WriteLine("FAILED! We lost data during the serialize=>deserialize round trip");
+                UnityEngine.Debug.Log("FAILED! We lost data during the serialize=>deserialize round trip");
 
-            //Console.WriteLine(Environment.NewLine + "Press any key to exit ...");
+            //UnityEngine.Debug.Log(Environment.NewLine + "Press any key to exit ...");
             //Console.ReadLine();
-            Console.WriteLine(Helper.HorizontalLine);
+            UnityEngine.Debug.Log(Helper.HorizontalLine);
         }
     }
 }
